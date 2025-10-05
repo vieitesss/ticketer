@@ -59,7 +59,7 @@ AI-powered receipt processing application that extracts structured data from rec
 1. Clone the repository and create `.env` file:
 
 ```bash
-cp .env.example .env
+cp example.env .env
 ```
 
 2. Add your Gemini API key to `.env`:
