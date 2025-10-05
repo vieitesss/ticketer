@@ -53,7 +53,7 @@ func (h *ReceiptHandler) UploadAndProcess(w http.ResponseWriter, r *http.Request
 	}
 
 	// Create uploads directory if it doesn't exist
-	uploadsDir := "uploads"
+	uploadsDir := "/app/uploads"
 	if err := os.MkdirAll(uploadsDir, 0755); err != nil {
 		log.Error("Failed to create uploads directory", "error", err)
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
