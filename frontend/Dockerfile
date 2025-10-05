@@ -1,8 +1,8 @@
-FROM cgr.dev/chainguard/wolfi-base AS builder
+FROM cgr.dev/chainguard/node:latest-dev AS builder
+
+USER root
 
 WORKDIR /app
-
-RUN apk add --no-cache nodejs yarn
 
 COPY package.json yarn.lock ./
 
