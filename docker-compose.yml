@@ -11,7 +11,7 @@ services:
     env_file:
       - .env
     volumes:
-      - ./backend/uploads:/app/uploads
+      - uploads:/app/uploads
     networks:
       - ticketer-network
 
@@ -27,6 +27,10 @@ services:
       - backend
     networks:
       - ticketer-network
+
+volumes:
+  uploads:
+    driver: local
 
 networks:
   ticketer-network:
