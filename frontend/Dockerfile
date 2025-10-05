@@ -16,7 +16,7 @@ FROM cgr.dev/chainguard/wolfi-base
 
 WORKDIR /app
 
-RUN apk add --no-cache nodejs yarn
+RUN apk add --no-cache nodejs
 
 ENV NODE_ENV=production
 

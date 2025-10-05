@@ -18,8 +18,6 @@ WORKDIR /app
 
 RUN chmod -R 755 /app
 
-COPY --chown=nonroot:nonroot ./images ./images
-
 COPY --chown=nonroot:nonroot --from=builder /app/main .
 
 RUN mkdir -p /app/uploads && \
