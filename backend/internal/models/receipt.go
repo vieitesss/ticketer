@@ -14,5 +14,5 @@ type Receipt struct {
 	StoreName string    `json:"store_name"`
 	Items     []Item    `json:"items"`
 	Discounts float64   `json:"discounts"`
-	CreatedAt time.Time `json:"created_at,omitempty"`
+	CreatedAt time.Time `json:"created_at"`
 }
