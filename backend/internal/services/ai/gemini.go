@@ -9,8 +9,8 @@ import (
 	"strings"
 
 	"github.com/charmbracelet/log"
-	"github.com/vieitesss/ticketer/internal/logger"
 	"github.com/vieitesss/ticketer/internal/models"
+	"github.com/vieitesss/ticketer/pkg/logger"
 	"google.golang.org/genai"
 )
 

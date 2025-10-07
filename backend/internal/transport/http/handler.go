@@ -1,4 +1,4 @@
-package handlers
+package http
 
 import (
 	"encoding/json"
@@ -9,20 +9,20 @@ import (
 	"path/filepath"
 
 	"github.com/charmbracelet/log"
-	"github.com/vieitesss/ticketer/internal/services/ai"
+	"github.com/vieitesss/ticketer/internal/services"
 )
 
-type ReceiptHandler struct {
-	aiService *ai.GeminiService
+type Handler struct {
+	receiptService *services.ReceiptService
 }
 
-func NewReceiptHandler(aiService *ai.GeminiService) *ReceiptHandler {
-	return &ReceiptHandler{
-		aiService: aiService,
+func NewHandler(receiptService *services.ReceiptService) *Handler {
+	return &Handler{
+		receiptService: receiptService,
 	}
 }
 
-func (h *ReceiptHandler) UploadAndProcess(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) UploadAndProcess(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		return
@@ -76,8 +76,8 @@ func (h *ReceiptHandler) UploadAndProcess(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	// Process receipt
-	receipt, err := h.aiService.ProcessReceipt(r.Context(), tempPath)
+	// Process receipt through service layer
+	receipt, err := h.receiptService.ProcessReceipt(r.Context(), tempPath)
 	if err != nil {
 		log.Error("Failed to process receipt", "path", tempPath, "error", err)
 		http.Error(w, fmt.Sprintf("Failed to process receipt: %v", err), http.StatusInternalServerError)
@@ -92,7 +92,7 @@ func (h *ReceiptHandler) UploadAndProcess(w http.ResponseWriter, r *http.Request
 	json.NewEncoder(w).Encode(receipt)
 }
 
-func (h *ReceiptHandler) HealthCheck(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) HealthCheck(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string]string{"status": "ok"})
 }

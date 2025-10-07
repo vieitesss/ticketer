@@ -7,5 +7,7 @@ export interface Item {
 export interface Receipt {
   store_name: string;
   items: Item[];
-  discounts: number | null;
+  subtotal: number;
+  discounts: number;
+  total_amount: number;
 }
