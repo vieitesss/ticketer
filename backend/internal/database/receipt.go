@@ -54,10 +54,10 @@ func (db *DB) GetReceipt(ctx context.Context, id string) (*models.Receipt, error
 	var receipt models.Receipt
 	var discounts *float64
 	err := db.Pool.QueryRow(ctx, `
-		SELECT store_name, discounts
+		SELECT id, store_name, discounts, created_at
 		FROM receipts
 		WHERE id = $1
-	`, id).Scan(&receipt.StoreName, &discounts)
+	`, id).Scan(&receipt.ID, &receipt.StoreName, &discounts, &receipt.CreatedAt)
 	if err != nil {
 		if err == pgx.ErrNoRows {
 			return nil, fmt.Errorf("receipt not found")
@@ -67,11 +67,13 @@ func (db *DB) GetReceipt(ctx context.Context, id string) (*models.Receipt, error
 
 	if discounts != nil {
 		receipt.Discounts = *discounts
+	} else {
+		receipt.Discounts = 0
 	}
 
 	// Get items
 	rows, err := db.Pool.Query(ctx, `
-		SELECT name, quantity, price
+		SELECT id, name, quantity, price
 		FROM items
 		WHERE receipt_id = $1
 		ORDER BY name
@@ -84,7 +86,7 @@ func (db *DB) GetReceipt(ctx context.Context, id string) (*models.Receipt, error
 	receipt.Items = []models.Item{}
 	for rows.Next() {
 		var item models.Item
-		if err := rows.Scan(&item.Name, &item.Quantity, &item.Price); err != nil {
+		if err := rows.Scan(&item.ID, &item.Name, &item.Quantity, &item.Price); err != nil {
 			return nil, fmt.Errorf("failed to scan item: %w", err)
 		}
 		receipt.Items = append(receipt.Items, item)
@@ -117,12 +119,13 @@ func (db *DB) ListReceipts(ctx context.Context, limit, offset int) ([]models.Rec
 		var receipt models.Receipt
 		var discounts *float64
 		var subtotal float64
-		var id string
-		if err := rows.Scan(&id, &receipt.StoreName, &discounts, &subtotal); err != nil {
+		if err := rows.Scan(&receipt.ID, &receipt.StoreName, &discounts, &subtotal); err != nil {
 			return nil, fmt.Errorf("failed to scan receipt: %w", err)
 		}
 		if discounts != nil {
 			receipt.Discounts = *discounts
+		} else {
+			receipt.Discounts = 0
 		}
 		receipts = append(receipts, receipt)
 	}

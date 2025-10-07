@@ -70,6 +70,7 @@ func (s *ReceiptService) ListReceipts(ctx context.Context, limit, offset int) ([
 		totalAmount := subtotal - receipt.Discounts
 
 		listItems[i] = dto.ReceiptListItem{
+			ID:          receipt.ID,
 			StoreName:   receipt.StoreName,
 			TotalAmount: totalAmount,
 			Discounts:   receipt.Discounts,
