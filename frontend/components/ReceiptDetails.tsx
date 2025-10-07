@@ -21,8 +21,9 @@ export default function ReceiptDetails({ receipt }: ReceiptDetailsProps) {
       <CardBody className="space-y-6">
         <ReceiptTable items={receipt.items} />
         <ReceiptSummary
-          items={receipt.items}
+          subtotal={receipt.subtotal}
           discounts={receipt.discounts}
+          totalAmount={receipt.total_amount}
         />
       </CardBody>
     </Card>
