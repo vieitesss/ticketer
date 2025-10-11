@@ -3,27 +3,24 @@ package app
 import (
 	"context"
 	"fmt"
-	"net/http"
 
 	"github.com/charmbracelet/log"
+	"github.com/gofiber/fiber/v3"
 	"github.com/vieitesss/ticketer/internal/config"
 	"github.com/vieitesss/ticketer/internal/database"
 	"github.com/vieitesss/ticketer/internal/services"
-	"github.com/vieitesss/ticketer/internal/services/ai"
-	httpTransport "github.com/vieitesss/ticketer/internal/transport/http"
-	"github.com/vieitesss/ticketer/pkg/logger"
+	"github.com/vieitesss/ticketer/internal/transport/http"
+	"github.com/vieitesss/ticketer/internal/transport/http/handlers"
+	"github.com/vieitesss/ticketer/internal/transport/http/routers"
 )
 
 type App struct {
 	config *config.Config
-	db     *database.DB
-	server *http.Server
+	db     database.ReceiptRepository
+	server *fiber.App
 }
 
 func New() (*App, error) {
-	// Initialize logger
-	logger.Init()
-
 	// Load configuration
 	cfg := config.Load()
 
@@ -31,7 +28,7 @@ func New() (*App, error) {
 	ctx := context.Background()
 
 	// Initialize database (optional - only if DATABASE_URL is set)
-	var db *database.DB
+	var db database.ReceiptRepository
 	if cfg.DatabaseURL != "" {
 		var err error
 		db, err = database.NewPostgres(ctx, cfg.DatabaseURL)
@@ -43,26 +40,22 @@ func New() (*App, error) {
 		log.Warn("No DATABASE_URL provided, running without database")
 	}
 
-	// Initialize AI service
-	geminiService, err := ai.NewGeminiService(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("failed to create Gemini service: %w", err)
-	}
-
 	// Initialize services
-	receiptService := services.NewReceiptService(geminiService, db)
-
-	// Initialize HTTP handler
-	handler := httpTransport.NewHandler(receiptService)
-
-	// Setup routes
-	router := httpTransport.SetupRoutes(handler)
+	receiptService, err := services.NewReceiptService(ctx, db)
+	if err != nil {
+		log.Error("Failed to initialize receipt service", "error", err)
+		return nil, fmt.Errorf("Failed to initialize receipt service: %w", err)
+	}
 
 	// Create HTTP server
-	server := &http.Server{
-		Addr:    ":" + cfg.ServerPort,
-		Handler: router,
-	}
+	server := http.NewServer()
+
+	// Initialize HTTP handler
+	receiptHandler := handlers.NewReceiptHandler(receiptService)
+
+	// Setup routes
+	api := server.Group("/api")
+	routers.NewReceiptRouter(api, receiptHandler)
 
 	return &App{
 		config: cfg,
@@ -73,7 +66,7 @@ func New() (*App, error) {
 
 func (a *App) Run() error {
 	log.Info("Server starting", "port", a.config.ServerPort)
-	if err := a.server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+	if err := a.server.Listen(fmt.Sprint(":" + a.config.ServerPort)); err != nil {
 		return fmt.Errorf("server failed to start: %w", err)
 	}
 	return nil
