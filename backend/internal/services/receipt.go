@@ -2,6 +2,7 @@ package services
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/charmbracelet/log"
 	"github.com/vieitesss/ticketer/internal/database"
@@ -12,14 +13,20 @@ import (
 
 type ReceiptService struct {
 	aiService *ai.GeminiService
-	db        *database.DB
+	db        database.ReceiptRepository
 }
 
-func NewReceiptService(aiService *ai.GeminiService, db *database.DB) *ReceiptService {
-	return &ReceiptService{
-		aiService: aiService,
-		db:        db,
+func NewReceiptService(ctx context.Context, db database.ReceiptRepository) (*ReceiptService, error) {
+	// Initialize AI service
+	geminiService, err := ai.NewGeminiService(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create Gemini service: %w", err)
 	}
+
+	return &ReceiptService{
+		aiService: geminiService,
+		db:        db,
+	}, nil
 }
 
 func (s *ReceiptService) ProcessReceipt(ctx context.Context, imagePath string) (*dto.ReceiptResponse, error) {

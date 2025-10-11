@@ -1,5 +1,8 @@
 FROM cgr.dev/chainguard/go AS builder
 
+ENV TERM=xterm-256color
+ENV COLORTERM=truecolor
+
 WORKDIR /app
 
 COPY go.mod go.sum ./

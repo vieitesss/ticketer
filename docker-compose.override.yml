@@ -1,0 +1,12 @@
+services:
+  backend:
+    image: cosmtrek/air:latest
+    working_dir: /app
+    volumes:
+      - ./backend:/app
+      - go-modules:/go/pkg/mod
+    environment:
+      - IS_DEV=true
+
+volumes:
+  go-modules:

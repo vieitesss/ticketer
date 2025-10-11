@@ -11,11 +11,15 @@ import (
 //go:embed schema.sql
 var schemaSQL string
 
-type DB struct {
+// PostgresRepository implements the ReceiptRepository interface using PostgreSQL
+type PostgresRepository struct {
 	Pool *pgxpool.Pool
 }
 
-func NewPostgres(ctx context.Context, databaseURL string) (*DB, error) {
+// Ensure PostgresRepository implements ReceiptRepository interface
+var _ ReceiptRepository = (*PostgresRepository)(nil)
+
+func NewPostgres(ctx context.Context, databaseURL string) (*PostgresRepository, error) {
 	if databaseURL == "" {
 		return nil, fmt.Errorf("database URL is required")
 	}
@@ -30,23 +34,23 @@ func NewPostgres(ctx context.Context, databaseURL string) (*DB, error) {
 		return nil, fmt.Errorf("failed to ping database: %w", err)
 	}
 
-	db := &DB{Pool: pool}
+	repo := &PostgresRepository{Pool: pool}
 
 	// Initialize schema
-	if err := db.InitSchema(ctx); err != nil {
+	if err := repo.InitSchema(ctx); err != nil {
 		return nil, fmt.Errorf("failed to initialize schema: %w", err)
 	}
 
-	return db, nil
+	return repo, nil
 }
 
-func (db *DB) InitSchema(ctx context.Context) error {
-	_, err := db.Pool.Exec(ctx, schemaSQL)
+func (r *PostgresRepository) InitSchema(ctx context.Context) error {
+	_, err := r.Pool.Exec(ctx, schemaSQL)
 	return err
 }
 
-func (db *DB) Close() {
-	if db.Pool != nil {
-		db.Pool.Close()
+func (r *PostgresRepository) Close() {
+	if r.Pool != nil {
+		r.Pool.Close()
 	}
 }

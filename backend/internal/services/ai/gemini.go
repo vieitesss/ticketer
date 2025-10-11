@@ -330,13 +330,13 @@ You are a specialized processor for supermarket receipts, in this case from the 
 
 	responseText := result.Text()
 	log.Info("Received response from model")
-	log.Debug("Raw model response", "response", logger.FormatJSON(responseText))
 
 	var receipt models.Receipt
 	if err := json.Unmarshal([]byte(responseText), &receipt); err != nil {
 		return nil, fmt.Errorf("failed to parse response: %w\nResponse: %s", err, responseText)
 	}
 
+	logger.DebugJSON("Raw model response", "response", receipt)
 	log.Info("Successfully parsed receipt",
 		"store_name", receipt.StoreName,
 		"items", len(receipt.Items),

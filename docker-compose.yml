@@ -16,17 +16,13 @@ services:
       retries: 5
 
   backend:
-    build:
-      context: ./backend
-      dockerfile: build/Dockerfile
     ports:
       - "8080:8080"
     environment:
       - GEMINI_API_KEY=${GEMINI_API_KEY}
       - LOG_LEVEL=${LOG_LEVEL:-info}
       - DATABASE_URL=${DATABASE_URL}
-    env_file:
-      - .env
+      - TERM=xterm-256color
     volumes:
       - uploads:/app/uploads
     depends_on:
@@ -50,10 +46,7 @@ services:
 
 volumes:
   uploads:
-    driver: local
   postgres_data:
-    driver: local
 
 networks:
   ticketer-network:
-    driver: bridge
