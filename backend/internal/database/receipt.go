@@ -11,8 +11,8 @@ import (
 )
 
 // CreateReceipt inserts a new receipt and its items into the database
-func (db *DB) CreateReceipt(ctx context.Context, receipt *models.Receipt) (string, error) {
-	tx, err := db.Pool.Begin(ctx)
+func (r *PostgresRepository) CreateReceipt(ctx context.Context, receipt *models.Receipt) (string, error) {
+	tx, err := r.Pool.Begin(ctx)
 	if err != nil {
 		return "", fmt.Errorf("failed to begin transaction: %w", err)
 	}
@@ -49,11 +49,11 @@ func (db *DB) CreateReceipt(ctx context.Context, receipt *models.Receipt) (strin
 }
 
 // GetReceipt retrieves a receipt by ID with all its items
-func (db *DB) GetReceipt(ctx context.Context, id string) (*models.Receipt, error) {
+func (r *PostgresRepository) GetReceipt(ctx context.Context, id string) (*models.Receipt, error) {
 	// Get receipt
 	var receipt models.Receipt
 	var discounts *float64
-	err := db.Pool.QueryRow(ctx, `
+	err := r.Pool.QueryRow(ctx, `
 		SELECT id, store_name, discounts, created_at
 		FROM receipts
 		WHERE id = $1
@@ -72,7 +72,7 @@ func (db *DB) GetReceipt(ctx context.Context, id string) (*models.Receipt, error
 	}
 
 	// Get items
-	rows, err := db.Pool.Query(ctx, `
+	rows, err := r.Pool.Query(ctx, `
 		SELECT id, name, quantity, price
 		FROM items
 		WHERE receipt_id = $1
@@ -96,8 +96,8 @@ func (db *DB) GetReceipt(ctx context.Context, id string) (*models.Receipt, error
 }
 
 // ListReceipts retrieves all receipts (without items, but with calculated totals)
-func (db *DB) ListReceipts(ctx context.Context, limit, offset int) ([]models.Receipt, error) {
-	rows, err := db.Pool.Query(ctx, `
+func (r *PostgresRepository) ListReceipts(ctx context.Context, limit, offset int) ([]models.Receipt, error) {
+	rows, err := r.Pool.Query(ctx, `
 		SELECT
 			r.id,
 			r.store_name,
