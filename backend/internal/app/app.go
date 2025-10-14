@@ -54,8 +54,7 @@ func New() (*App, error) {
 	receiptHandler := handlers.NewReceiptHandler(receiptService)
 
 	// Setup routes
-	api := server.Group("/api")
-	routers.NewReceiptRouter(api, receiptHandler)
+	routers.NewReceiptRouter(server, receiptHandler)
 
 	return &App{
 		config: cfg,

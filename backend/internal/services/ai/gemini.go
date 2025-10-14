@@ -273,9 +273,18 @@ You are a specialized processor for supermarket receipts, in this case from the 
 - Generate a JSON with the following format:
 {
   "store_name": string,
+  "bought_date": string,
   "items": [{"name": string, "quantity": float, "price": float}],
   "discounts": float | null
-}`, storeName, storePrompt)
+}
+
+## NORMALIZATION RULES
+
+- **Store name**: Convert to UPPERCASE, remove extra spaces
+- **Product names**: Convert to UPPERCASE exactly as they appear on the receipt (keep sizes, brands, everything)
+- **Date**: Extract "bought_date" from receipt, format as ISO 8601: "YYYY-MM-DD" (e.g., "2024-03-15")
+  - Look for date formats like "DD/MM/YYYY", "DD-MM-YYYY", or similar
+  - If you cannot find a date, use null`, storeName, storePrompt)
 
 	log.Info("Sending receipt to model for extraction", "store", storeName)
 
@@ -292,6 +301,10 @@ You are a specialized processor for supermarket receipts, in this case from the 
 				Type:     genai.TypeString,
 				Nullable: genai.Ptr(true),
 			},
+			"bought_date": {
+				Type:     genai.TypeString,
+				Nullable: genai.Ptr(true),
+			},
 			"items": {
 				Type: genai.TypeArray,
 				Items: &genai.Schema{
@@ -304,10 +317,11 @@ You are a specialized processor for supermarket receipts, in this case from the 
 					PropertyOrdering: []string{"name", "quantity", "price"},
 				},
 			},
-			"discounts":    {Type: genai.TypeNumber, Nullable: genai.Ptr(true)},
+			"discounts": {Type: genai.TypeNumber, Nullable: genai.Ptr(true)},
 		},
 		PropertyOrdering: []string{
 			"store_name",
+			"bought_date",
 			"items",
 			"discounts",
 		},
@@ -339,6 +353,7 @@ You are a specialized processor for supermarket receipts, in this case from the 
 	logger.DebugJSON("Raw model response", "response", receipt)
 	log.Info("Successfully parsed receipt",
 		"store_name", receipt.StoreName,
+		"bought_date", receipt.BoughtDate,
 		"items", len(receipt.Items),
 		"discounts", receipt.Discounts)
 	log.Info("Receipt processing completed")

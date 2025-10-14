@@ -1,7 +1,5 @@
 package models
 
-import "time"
-
 type Item struct {
 	ID       string  `json:"id"`
 	Name     string  `json:"name"`
@@ -10,9 +8,9 @@ type Item struct {
 }
 
 type Receipt struct {
-	ID        string    `json:"id"`
-	StoreName string    `json:"store_name"`
-	Items     []Item    `json:"items"`
-	Discounts float64   `json:"discounts"`
-	CreatedAt time.Time `json:"created_at"`
+	ID         string    `json:"id"`
+	StoreName  string    `json:"store_name"`
+	BoughtDate string    `json:"bought_date"` // ISO 8601 format: YYYY-MM-DD
+	Items      []Item    `json:"items"`
+	Discounts  float64   `json:"discounts"`
 }

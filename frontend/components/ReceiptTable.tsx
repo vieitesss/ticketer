@@ -34,13 +34,13 @@ export default function ReceiptTable({ items }: ReceiptTableProps) {
           <TableColumn align="end">SUBTOTAL</TableColumn>
         </TableHeader>
         <TableBody>
-          {items.map((item, index) => (
-            <TableRow key={index} className="hover:bg-[#2a2d3a] transition-colors">
-              <TableCell className="font-medium">{item.name}</TableCell>
-              <TableCell className="text-center">{item.quantity}</TableCell>
-              <TableCell className="text-right">€{item.price.toFixed(2)}</TableCell>
+          {items.map((item) => (
+            <TableRow key={item.id} className="hover:bg-[#2a2d3a] transition-colors">
+              <TableCell className="font-medium">{item.product_name}</TableCell>
+              <TableCell className="text-center">{item.quantity.toFixed(3)}</TableCell>
+              <TableCell className="text-right">${item.price_paid.toFixed(2)}</TableCell>
               <TableCell className="text-right font-semibold">
-                €{(item.quantity * item.price).toFixed(2)}
+                ${item.subtotal.toFixed(2)}
               </TableCell>
             </TableRow>
           ))}
