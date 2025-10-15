@@ -8,6 +8,7 @@ import (
 	"sort"
 	"time"
 
+	"github.com/charmbracelet/log"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 	"github.com/vieitesss/ticketer/internal/models"
@@ -29,7 +30,7 @@ func calculateReceiptHash(storeName, boughtDate string, items []models.Item) str
 	}
 
 	// Log hash input for debugging
-	fmt.Printf("DEBUG: Hash input: %s\n", hashInput)
+	log.Debug("Hash input", "input", hashInput)
 
 	// Calculate SHA-256 hash
 	hash := sha256.Sum256([]byte(hashInput))
@@ -48,8 +49,7 @@ func (r *PostgresRepository) CreateReceipt(ctx context.Context, receipt *models.
 	receiptHash := calculateReceiptHash(receipt.StoreName, receipt.BoughtDate, receipt.Items)
 
 	// Log hash for debugging
-	fmt.Printf("DEBUG: Receipt hash: %s (Store: %s, Date: %s, Items: %d)\n",
-		receiptHash, receipt.StoreName, receipt.BoughtDate, len(receipt.Items))
+	log.Debug("Receipt hash", "hash", receiptHash)
 
 	// Check if receipt already exists
 	var existingID string
@@ -58,13 +58,13 @@ func (r *PostgresRepository) CreateReceipt(ctx context.Context, receipt *models.
 	`, receiptHash).Scan(&existingID)
 	if err == nil {
 		// Receipt already exists
-		fmt.Printf("DEBUG: Duplicate detected! Existing ID: %s\n", existingID)
+		log.Debug("Duplicate receipt detected", "existing_id", existingID)
 		return "", fmt.Errorf("duplicate receipt: this receipt has already been uploaded (ID: %s)", existingID)
 	} else if err != pgx.ErrNoRows {
 		return "", fmt.Errorf("failed to check for duplicate receipt: %w", err)
 	}
 
-	fmt.Printf("DEBUG: No duplicate found, creating new receipt\n")
+	log.Debug("No duplicate found, creating new receipt")
 
 	// UPSERT store and get store ID
 	var storeID string
