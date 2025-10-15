@@ -15,7 +15,10 @@ export default function ReceiptDetails({ receipt }: ReceiptDetailsProps) {
       <CardHeader className="flex flex-col items-start gap-2 pb-4">
         <h2 className="text-xl font-semibold text-white">Receipt Details</h2>
         <p className="text-lg text-gray-300">
-          Store: <span className="font-semibold text-blue-400">{receipt.store_name}</span>
+          Store: <span className="font-semibold text-blue-400">{receipt.store.name}</span>
+        </p>
+        <p className="text-sm text-gray-400">
+          Date: {receipt.bought_date}
         </p>
       </CardHeader>
       <CardBody className="space-y-6">

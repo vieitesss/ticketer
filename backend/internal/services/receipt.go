@@ -40,7 +40,7 @@ func (s *ReceiptService) ProcessReceipt(ctx context.Context, imagePath string) (
 	if s.db != nil {
 		receiptID, err := s.db.CreateReceipt(ctx, receipt)
 		if err != nil {
-			log.Error("Failed to save receipt to database", "error", err)
+			log.Warn("Failed to save receipt to database", "error", err)
 			// Don't fail the request if database save fails
 		} else {
 			log.Info("Receipt saved to database", "id", receiptID)
@@ -68,23 +68,26 @@ func (s *ReceiptService) ListReceipts(ctx context.Context, limit, offset int) ([
 
 	listItems := make([]dto.ReceiptListItem, len(receipts))
 	for i, receipt := range receipts {
-		// For list view, we need to calculate total from items if available
-		// or return 0 if items weren't loaded
-		subtotal := 0.0
-		for _, item := range receipt.Items {
-			subtotal += item.Quantity * item.Price
-		}
-		totalAmount := subtotal - receipt.Discounts
-
 		listItems[i] = dto.ReceiptListItem{
 			ID:          receipt.ID,
 			StoreName:   receipt.StoreName,
-			TotalAmount: totalAmount,
-			Discounts:   receipt.Discounts,
+			ItemCount:   receipt.ItemCount,
+			BoughtDate:  receipt.BoughtDate,
+			TotalAmount: receipt.TotalAmount,
 		}
 	}
 
 	return listItems, nil
+}
+
+// DeleteReceipt deletes a receipt by ID
+func (s *ReceiptService) DeleteReceipt(ctx context.Context, id string) error {
+	return s.db.DeleteReceipt(ctx, id)
+}
+
+// UpdateItem updates an item's quantity and price
+func (s *ReceiptService) UpdateItem(ctx context.Context, itemID string, quantity, pricePaid float64) error {
+	return s.db.UpdateItem(ctx, itemID, quantity, pricePaid)
 }
 
 // modelToDTO converts a receipt model to a DTO with calculated fields
@@ -93,19 +96,32 @@ func (s *ReceiptService) modelToDTO(receipt *models.Receipt) *dto.ReceiptRespons
 	subtotal := 0.0
 	items := make([]dto.ItemResponse, len(receipt.Items))
 	for i, item := range receipt.Items {
-		subtotal += item.Quantity * item.Price
+		itemSubtotal := item.Quantity * item.Price
+		subtotal += itemSubtotal
 		items[i] = dto.ItemResponse{
-			Name:     item.Name,
-			Quantity: item.Quantity,
-			Price:    item.Price,
+			ID:          item.ID,
+			ProductID:   item.ID, // TODO: Need to get actual product_id from database
+			ProductName: item.Name,
+			Quantity:    item.Quantity,
+			PricePaid:   item.Price,
+			Subtotal:    itemSubtotal,
 		}
 	}
 
 	// Calculate total amount
 	totalAmount := subtotal - receipt.Discounts
 
+	// Extract store info (for now, we only have store name)
+	// TODO: Need to get actual store ID from database
+	storeResponse := dto.StoreResponse{
+		ID:   "",
+		Name: receipt.StoreName,
+	}
+
 	return &dto.ReceiptResponse{
-		StoreName:   receipt.StoreName,
+		ID:          receipt.ID,
+		Store:       storeResponse,
+		BoughtDate:  receipt.BoughtDate,
 		Items:       items,
 		Subtotal:    subtotal,
 		Discounts:   receipt.Discounts,

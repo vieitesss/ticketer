@@ -16,7 +16,13 @@ type ReceiptRepository interface {
 	GetReceipt(ctx context.Context, id string) (*models.Receipt, error)
 
 	// ListReceipts retrieves all receipts (without items, but with calculated totals)
-	ListReceipts(ctx context.Context, limit, offset int) ([]models.Receipt, error)
+	ListReceipts(ctx context.Context, limit, offset int) ([]ReceiptListItem, error)
+
+	// DeleteReceipt deletes a receipt by ID
+	DeleteReceipt(ctx context.Context, id string) error
+
+	// UpdateItem updates an item's quantity and price
+	UpdateItem(ctx context.Context, itemID string, quantity, pricePaid float64) error
 
 	// Close closes the database connection
 	Close()
